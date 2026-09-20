@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using WDesk.Core;
-using WDesk.Widgets;
+using WDesk.Core;
 using WDesk.Widgets.Prayer.Style;
 
 namespace WDesk.Widgets.Prayer;
