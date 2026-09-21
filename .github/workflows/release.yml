@@ -28,6 +28,12 @@ jobs:
       - name: Build
         run: dotnet build -c Release --no-restore
 
+      - name: Debug - List build output
+        shell: pwsh
+        run: |
+          Write-Host "=== Build directory contents ==="
+          Get-ChildItem "bin\Release\net8.0-windows10.0.19041.0" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_.Name }
+
       - name: Prepare package
         shell: pwsh
         run: |
@@ -37,16 +43,45 @@ jobs:
           if (Test-Path $packageDir) { Remove-Item $packageDir -Recurse -Force }
           New-Item -ItemType Directory -Path $packageDir | Out-Null
 
-          Copy-Item "manifest.json" $packageDir
-          Copy-Item "$buildDir\WDesk.Widgets.Prayer.dll" $packageDir
+          # ── manifest.json ──
+          if (Test-Path "manifest.json") {
+            Copy-Item "manifest.json" $packageDir
+            Write-Host "[OK] Copied manifest.json"
+          } else {
+            Write-Error "manifest.json not found"
+            exit 1
+          }
 
+          # ── Main DLL ──
+          $mainDll = Join-Path $buildDir "WDesk.Widgets.Prayer.dll"
+          if (Test-Path $mainDll) {
+            Copy-Item $mainDll $packageDir
+            Write-Host "[OK] Copied WDesk.Widgets.Prayer.dll"
+          } else {
+            Write-Error "WDesk.Widgets.Prayer.dll not found at $mainDll"
+            exit 1
+          }
+
+          # ── PDB (optional) ──
           $pdbFile = Join-Path $buildDir "WDesk.Widgets.Prayer.pdb"
-          if (Test-Path $pdbFile) { Copy-Item $pdbFile $packageDir }
+          if (Test-Path $pdbFile) {
+            Copy-Item $pdbFile $packageDir
+            Write-Host "[OK] Copied WDesk.Widgets.Prayer.pdb"
+          }
 
+          # ── Package contents ──
+          Write-Host "=== Package contents ==="
+          Get-ChildItem $packageDir | ForEach-Object { Write-Host $_.Name }
+
+          # ── Create ZIP ──
           Compress-Archive -Path "$packageDir\*" -DestinationPath "prayer.zip"
 
           $hash = (Get-FileHash "prayer.zip" -Algorithm SHA256).Hash.ToLower()
           $size = (Get-Item "prayer.zip").Length
+
+          Write-Host "ZIP created: prayer.zip"
+          Write-Host "Size: $size bytes"
+          Write-Host "SHA256: $hash"
 
           "SHA256=$hash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "SIZE=$size" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
@@ -56,6 +91,7 @@ jobs:
         run: |
           $manifest = Get-Content "manifest.json" | ConvertFrom-Json
           $version = $manifest.version
+          Write-Host "Version from manifest: $version"
           "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Create Release
@@ -68,6 +104,7 @@ jobs:
             - **SHA256:** `${{ env.SHA256 }}`
             - **Size:** ${{ env.SIZE }} bytes
           files: prayer.zip
+          fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -78,6 +115,10 @@ jobs:
         run: |
           $version = "${{ env.VERSION }}"
           $downloadUrl = "https://github.com/you-mountain/WDesk.Widgets.Prayer/releases/download/v$version/prayer.zip"
+
+          Write-Host "Notifying marketplace..."
+          Write-Host "  version: $version"
+          Write-Host "  downloadUrl: $downloadUrl"
 
           $body = @{
             event_type = "widget-release"
@@ -103,7 +144,8 @@ jobs:
               -Headers $headers `
               -Body $body `
               -ContentType "application/json"
-            Write-Host "Marketplace notified!"
+            Write-Host "[OK] Marketplace notified"
           } catch {
-            Write-Host "Notification failed: $_" -ForegroundColor Yellow
+            Write-Host "[WARN] Failed to notify marketplace: $_" -ForegroundColor Yellow
+            Write-Host "This is OK if the marketplace workflow isn't setup yet."
           }
