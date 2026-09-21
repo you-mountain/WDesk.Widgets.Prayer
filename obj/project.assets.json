@@ -3,13 +3,12 @@
   "targets": {
     "net8.0-windows10.0.19041.0": {
       "WDesk.SDK/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v8.0",
+        "type": "package",
         "compile": {
-          "bin/placeholder/WDesk.SDK.dll": {}
+          "lib/net8.0-windows10.0.19041/WDesk.SDK.dll": {}
         },
         "runtime": {
-          "bin/placeholder/_._": {}
+          "lib/net8.0-windows10.0.19041/WDesk.SDK.dll": {}
         },
         "frameworkReferences": [
           "Microsoft.WindowsDesktop.App.WPF"
@@ -19,9 +18,16 @@
   },
   "libraries": {
     "WDesk.SDK/1.0.0": {
-      "type": "project",
-      "path": "../WDesk.SDK/WDesk.SDK.csproj",
-      "msbuildProject": "../WDesk.SDK/WDesk.SDK.csproj"
+      "sha512": "RBcztEfi1mtHW3yYRDGzUh9CbqZXkuCttLNPTAnpT5TIZjZL50qt1OBLcDLrqpAXDWkxMz4u3VDXCCwBk52jFQ==",
+      "type": "package",
+      "path": "wdesk.sdk/1.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net8.0-windows10.0.19041/WDesk.SDK.dll",
+        "wdesk.sdk.1.0.0.nupkg.sha512",
+        "wdesk.sdk.nuspec"
+      ]
     }
   },
   "projectFileDependencyGroups": {
@@ -56,12 +62,7 @@
         "net8.0-windows10.0.19041.0": {
           "framework": "net8.0-windows10.0.19041",
           "targetAlias": "net8.0-windows10.0.19041.0",
-          "projectReferences": {
-            "D:\\coding\\WDesk\\WDesk.SDK\\WDesk.SDK.csproj": {
-              "projectPath": "D:\\coding\\WDesk\\WDesk.SDK\\WDesk.SDK.csproj",
-              "excludeAssets": "runtime"
-            }
-          }
+          "projectReferences": {}
         }
       },
       "warningProperties": {
@@ -80,6 +81,12 @@
       "net8.0-windows10.0.19041.0": {
         "framework": "net8.0-windows10.0.19041",
         "targetAlias": "net8.0-windows10.0.19041.0",
+        "dependencies": {
+          "WDesk.SDK": {
+            "target": "Package",
+            "version": "[1.0.0, )"
+          }
+        },
         "imports": [
           "net461",
           "net462",

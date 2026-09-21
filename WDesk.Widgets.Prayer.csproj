@@ -11,12 +11,8 @@
 		<EnableDynamicLoading>true</EnableDynamicLoading>
 	</PropertyGroup>
 
-	<!-- ★ این باید WDesk.SDK باشه، نه WDesk -->
 	<ItemGroup>
-		<ProjectReference Include="..\WDesk.SDK\WDesk.SDK.csproj">
-			<Private>false</Private>
-			<ExcludeAssets>runtime</ExcludeAssets>
-		</ProjectReference>
+		<PackageReference Include="WDesk.SDK" Version="1.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

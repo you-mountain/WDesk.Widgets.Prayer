@@ -38,24 +38,15 @@ jobs:
           New-Item -ItemType Directory -Path $packageDir | Out-Null
 
           Copy-Item "manifest.json" $packageDir
-
-          $mainDll = Join-Path $buildDir "WDesk.Widgets.Prayer.dll"
-          Copy-Item $mainDll $packageDir
+          Copy-Item "$buildDir\WDesk.Widgets.Prayer.dll" $packageDir
 
           $pdbFile = Join-Path $buildDir "WDesk.Widgets.Prayer.pdb"
           if (Test-Path $pdbFile) { Copy-Item $pdbFile $packageDir }
-
-          if (Test-Path "Resources") {
-              Copy-Item "Resources" $packageDir -Recurse
-          }
 
           Compress-Archive -Path "$packageDir\*" -DestinationPath "prayer.zip"
 
           $hash = (Get-FileHash "prayer.zip" -Algorithm SHA256).Hash.ToLower()
           $size = (Get-Item "prayer.zip").Length
-
-          Write-Host "SHA256: $hash"
-          Write-Host "Size:   $size bytes"
 
           "SHA256=$hash" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
           "SIZE=$size" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
@@ -65,7 +56,6 @@ jobs:
         run: |
           $manifest = Get-Content "manifest.json" | ConvertFrom-Json
           $version = $manifest.version
-          Write-Host "Version: $version"
           "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Create Release
@@ -75,13 +65,40 @@ jobs:
           name: "Prayer Times v${{ env.VERSION }}"
           body: |
             ## Prayer Times v${{ env.VERSION }}
-
-            Automated release.
-
             - **SHA256:** `${{ env.SHA256 }}`
             - **Size:** ${{ env.SIZE }} bytes
           files: prayer.zip
-          draft: false
-          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify marketplace
+        shell: pwsh
+        env:
+          MARKETPLACE_TOKEN: ${{ secrets.MARKETPLACE_TOKEN }}
+        run: |
+          $version = "${{ env.VERSION }}"
+          $downloadUrl = "https://github.com/you-mountain/WDesk.Widgets.Prayer/releases/download/v$version/prayer.zip"
+
+          $body = @{
+            event_type = "widget-release"
+            client_payload = @{
+              widgetId = "prayer"
+              version = $version
+              downloadUrl = $downloadUrl
+              fileSize = "${{ env.SIZE }}"
+              sha256 = "${{ env.SHA256 }}"
+              changelog = "Release v$version"
+            }
+          } | ConvertTo-Json -Depth 5
+
+          $headers = @{
+            "Accept" = "application/vnd.github+json"
+            "Authorization" = "Bearer $env:MARKETPLACE_TOKEN"
+          }
+
+          Invoke-RestMethod `
+            -Uri "https://api.github.com/repos/you-mountain/wdesk-marketplace/dispatches" `
+            -Method Post `
+            -Headers $headers `
+            -Body $body `
+            -ContentType "application/json"
