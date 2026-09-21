@@ -96,9 +96,14 @@ jobs:
             "Authorization" = "Bearer $env:MARKETPLACE_TOKEN"
           }
 
-          Invoke-RestMethod `
-            -Uri "https://api.github.com/repos/you-mountain/wdesk-marketplace/dispatches" `
-            -Method Post `
-            -Headers $headers `
-            -Body $body `
-            -ContentType "application/json"
+          try {
+            Invoke-RestMethod `
+              -Uri "https://api.github.com/repos/you-mountain/wdesk-marketplace/dispatches" `
+              -Method Post `
+              -Headers $headers `
+              -Body $body `
+              -ContentType "application/json"
+            Write-Host "Marketplace notified!"
+          } catch {
+            Write-Host "Notification failed: $_" -ForegroundColor Yellow
+          }
