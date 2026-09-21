@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -11,11 +12,20 @@ public static class PrayerService
 {
     private static PrayerData _data = new();
     private static bool _initialized = false;
+
     private static readonly HttpClient _http = new()
     {
         Timeout = TimeSpan.FromSeconds(15)
     };
 
+    // ═══════════════════════════════════════════
+    //  Events
+    // ═══════════════════════════════════════════
+    public static event Action? DataChanged;
+
+    // ═══════════════════════════════════════════
+    //  Public API
+    // ═══════════════════════════════════════════
     public static PrayerData GetCurrent() => _data;
 
     public static void Initialize()
@@ -24,26 +34,55 @@ public static class PrayerService
         _initialized = true;
 
         _data = new PrayerData();
-        Debug.WriteLine("Prayer: initialized");
+        Debug.WriteLine("[Prayer] initialized");
 
         _ = RefreshAsync();
+
+        // ═══ هر ۶ ساعت refresh کن ═══
+        var timer = new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromHours(6)
+        };
+        timer.Tick += (_, _) => _ = RefreshAsync();
+        timer.Start();
+
+        // ═══ هر ۳۰ ثانیه countdown آپدیت کن ═══
+        var tickTimer = new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(30)
+        };
+        tickTimer.Tick += (_, _) =>
+        {
+            CalculateNext();
+            DataChanged?.Invoke();
+        };
+        tickTimer.Start();
     }
 
+    // ═══════════════════════════════════════════
+    //  Refresh from API
+    // ═══════════════════════════════════════════
     public static async Task RefreshAsync()
     {
         try
         {
-            Debug.WriteLine("Prayer: fetching times...");
+            Debug.WriteLine("[Prayer] fetching times...");
 
             var url = "https://api.aladhan.com/v1/timingsByCity" +
-                      "?city=Tehran&country=Iran&method=7";
+                      $"?city={Uri.EscapeDataString(_data.City)}" +
+                      $"&country={Uri.EscapeDataString(_data.Country)}" +
+                      "&method=7";
 
             var json = await _http.GetStringAsync(url);
 
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 
-            if (!root.TryGetProperty("data", out var dataEl)) return;
+            if (!root.TryGetProperty("data", out var dataEl))
+            {
+                Debug.WriteLine("[Prayer] no 'data' in response");
+                return;
+            }
 
             if (dataEl.TryGetProperty("timings", out var timings))
             {
@@ -55,17 +94,34 @@ public static class PrayerService
                 _data.Isha = GetTime(timings, "Isha");
             }
 
+            // ★ تاریخ شمسی
+            if (dataEl.TryGetProperty("date", out var dateEl))
+            {
+                if (dateEl.TryGetProperty("hijri", out var hijri))
+                {
+                    if (hijri.TryGetProperty("date", out var hd))
+                        _data.HijriDate = hd.GetString() ?? "";
+                    if (hijri.TryGetProperty("month", out var hm) &&
+                        hm.TryGetProperty("en", out var hmEn))
+                        _data.HijriMonth = hmEn.GetString() ?? "";
+                }
+            }
+
             RebuildPrayers();
             CalculateNext();
 
-            Debug.WriteLine("Prayer: times updated");
+            Debug.WriteLine("[Prayer] times updated");
+            DataChanged?.Invoke();
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Prayer: fetch failed - {ex.Message}");
+            Debug.WriteLine($"[Prayer] fetch failed - {ex.Message}");
         }
     }
 
+    // ═══════════════════════════════════════════
+    //  Parse Helper
+    // ═══════════════════════════════════════════
     private static string GetTime(JsonElement el, string key)
     {
         if (el.TryGetProperty(key, out var v))
@@ -78,19 +134,25 @@ public static class PrayerService
         return "—";
     }
 
+    // ═══════════════════════════════════════════
+    //  Build Prayer List
+    // ═══════════════════════════════════════════
     private static void RebuildPrayers()
     {
         _data.Prayers = new List<PrayerTime>
         {
-            new() { Name = "Fajr",    Time = _data.Fajr },
-            new() { Name = "Sunrise", Time = _data.Sunrise },
-            new() { Name = "Dhuhr",   Time = _data.Dhuhr },
-            new() { Name = "Asr",     Time = _data.Asr },
-            new() { Name = "Maghrib", Time = _data.Maghrib },
-            new() { Name = "Isha",    Time = _data.Isha },
+            new() { Key = "fajr",    Name = "Fajr",    NameFa = "فجر",    Time = _data.Fajr },
+            new() { Key = "sunrise", Name = "Sunrise", NameFa = "طلوع",   Time = _data.Sunrise },
+            new() { Key = "dhuhr",   Name = "Dhuhr",   NameFa = "ظهر",    Time = _data.Dhuhr },
+            new() { Key = "asr",     Name = "Asr",     NameFa = "عصر",    Time = _data.Asr },
+            new() { Key = "maghrib", Name = "Maghrib", NameFa = "مغرب",   Time = _data.Maghrib },
+            new() { Key = "isha",    Name = "Isha",    NameFa = "عشاء",   Time = _data.Isha },
         };
     }
 
+    // ═══════════════════════════════════════════
+    //  Calculate Next Prayer
+    // ═══════════════════════════════════════════
     public static void CalculateNext()
     {
         try
@@ -113,6 +175,7 @@ public static class PrayerService
                 }
             }
 
+            // اگه همه‌ی نمازهای امروز گذشتن → فجر فردا
             if (next == null && _data.Prayers.Count > 0)
             {
                 var first = _data.Prayers[0];
@@ -129,13 +192,14 @@ public static class PrayerService
             {
                 next.IsNext = true;
                 _data.NextPrayerName = next.Name;
+                _data.NextPrayerNameFa = next.NameFa;
                 _data.NextPrayerTime = next.Time;
                 _data.TimeUntilNext = nextTime.Value - now;
             }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Prayer CalculateNext failed: {ex.Message}");
+            Debug.WriteLine($"[Prayer] CalculateNext failed: {ex.Message}");
         }
     }
 }

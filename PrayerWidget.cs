@@ -19,16 +19,33 @@ public class PrayerWidget : WidgetBase
         Category = WidgetCategory.Islamic,
         Icon = "\uE8C0",
         Author = "WDesk Team",
-        Version = "1.0.0",
-        DefaultWidth = 280,
-        DefaultHeight = 220,
+        Version = "1.0.3",
+        DefaultWidth = 300,
+        DefaultHeight = 260,
         HasSettings = false
     };
 
     public override IEnumerable<WStyle> GetStyles() => new List<WStyle>
     {
-        new() { Id = "style1", Name = "Card", Icon = "\uE8F1", PreviewEmoji = "🕌" }
+        new()
+        {
+            Id = "style1",
+            Name = "Card",
+            Icon = "\uE8F1",
+            PreviewEmoji = "🕌"
+        },
+        new()
+        {
+            Id = "style2",
+            Name = "Digital Minimal",
+            Icon = "\uE7C4",     // آیکون تایم‌لاین
+            PreviewEmoji = "✨"
+        }
     };
 
-    public override IStyleBuilder? GetStyleBuilder(string styleId) => new Style1();
+    public override IStyleBuilder? GetStyleBuilder(string styleId) => styleId switch
+    {
+        "style2" => new Style2(),
+        _ => new Style1()   // پیش‌فرض
+    };
 }
