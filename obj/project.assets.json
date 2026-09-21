@@ -2,7 +2,7 @@
   "version": 4,
   "targets": {
     "net8.0-windows10.0.19041.0": {
-      "WDesk.SDK/1.3.3": {
+      "WDesk.SDK/1.0.0": {
         "type": "package",
         "compile": {
           "lib/net8.0-windows10.0.19041/WDesk.SDK.dll": {}
@@ -17,22 +17,22 @@
     }
   },
   "libraries": {
-    "WDesk.SDK/1.3.3": {
-      "sha512": "7QdTPuofjvflkumtWs4BslfAGWs0rXPRrlLe0Dwz5VChU5m/rN4qssr9Z9P+KYTSHDJWnsXFgxl1tctJl/bI1A==",
+    "WDesk.SDK/1.0.0": {
+      "sha512": "RBcztEfi1mtHW3yYRDGzUh9CbqZXkuCttLNPTAnpT5TIZjZL50qt1OBLcDLrqpAXDWkxMz4u3VDXCCwBk52jFQ==",
       "type": "package",
-      "path": "wdesk.sdk/1.3.3",
+      "path": "wdesk.sdk/1.0.0",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "lib/net8.0-windows10.0.19041/WDesk.SDK.dll",
-        "wdesk.sdk.1.3.3.nupkg.sha512",
+        "wdesk.sdk.1.0.0.nupkg.sha512",
         "wdesk.sdk.nuspec"
       ]
     }
   },
   "projectFileDependencyGroups": {
     "net8.0-windows10.0.19041.0": [
-      "WDesk.SDK >= 1.3.3"
+      "WDesk.SDK >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -84,7 +84,7 @@
         "dependencies": {
           "WDesk.SDK": {
             "target": "Package",
-            "version": "[1.3.3, )"
+            "version": "[1.0.0, )"
           }
         },
         "imports": [

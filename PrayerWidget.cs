@@ -19,7 +19,7 @@ public class PrayerWidget : WidgetBase
         Category = WidgetCategory.Islamic,
         Icon = "\uE8C0",
         Author = "WDesk Team",
-        Version = "1.0.3",
+        Version = "1.0.0",
         DefaultWidth = 300,
         DefaultHeight = 260,
         HasSettings = false

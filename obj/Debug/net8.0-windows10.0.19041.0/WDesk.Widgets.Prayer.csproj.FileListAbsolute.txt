@@ -1,6 +1,0 @@
-D:\coding\WDesk\WDesk.Widgets.Prayer\obj\Debug\net8.0-windows10.0.19041.0\WDesk.Widgets.Prayer.csproj.AssemblyReference.cache
-D:\coding\WDesk\WDesk.Widgets.Prayer\obj\Debug\net8.0-windows10.0.19041.0\WDesk.Widgets.Prayer.GeneratedMSBuildEditorConfig.editorconfig
-D:\coding\WDesk\WDesk.Widgets.Prayer\obj\Debug\net8.0-windows10.0.19041.0\WDesk.Widgets.Prayer.AssemblyInfoInputs.cache
-D:\coding\WDesk\WDesk.Widgets.Prayer\obj\Debug\net8.0-windows10.0.19041.0\WDesk.Widgets.Prayer.AssemblyInfo.cs
-D:\coding\WDesk\WDesk.Widgets.Prayer\obj\Debug\net8.0-windows10.0.19041.0\WDesk.Widgets.Prayer.csproj.CoreCompileInputs.cache
-D:\coding\WDesk\WDesk.Widgets.Prayer\obj\Debug\net8.0-windows10.0.19041.0\WDesk.Widgets.Prayer.sourcelink.json

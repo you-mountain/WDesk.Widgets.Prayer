@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WDesk.Widgets.Prayer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+852560511ddc9d65467097dc6e5deae0a2a38135")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cb1b5fd10f67b61ed7a9e5bece30cc79cf09450d")]
 [assembly: System.Reflection.AssemblyProductAttribute("WDesk.Widgets.Prayer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WDesk.Widgets.Prayer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
